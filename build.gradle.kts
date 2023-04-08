@@ -1,7 +1,6 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
   kotlin("jvm") version "1.8.0"
+  id("io.ktor.plugin") version "2.2.4"
   application
 }
 
@@ -12,6 +11,7 @@ repositories {
 
 dependencies {
   implementation ("org.jetbrains.kotlin:kotlin-stdlib:1.8.20")
+  implementation("org.jetbrains.kotlin:kotlin-runtime:1.2.71")
   testImplementation(kotlin("test"))
 }
 
@@ -32,5 +32,11 @@ tasks.named<Jar>("jar") {
     attributes(
       "Main-Class" to "MainKt"
     )
+  }
+}
+
+ktor {
+  fatJar {
+    archiveFileName.set("2pc-fat.jar")
   }
 }
