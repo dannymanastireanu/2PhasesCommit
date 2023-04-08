@@ -26,10 +26,6 @@ application {
   mainClass.set("MainKt")
 }
 
-tasks.withType<KotlinCompile> {
-  kotlinOptions.jvmTarget = "17"
-}
-
 tasks.named<Jar>("jar") {
   archiveBaseName.set("2pc")
   manifest {
