@@ -34,6 +34,7 @@ fun coordinatorMode() {
         nodes.values.forEach { write(it.getOutputStream(), input) }
         println("Successfully send ${MESSAGE.ARE_YOU_READY} command")
 
+        println("Read messages from ${nodes.size}")
         val messages = nodes.entries.map { Pair(it.key, readMessageFromNode(it.value)) }
 
         val invalidMessages = messages.filter { it.second != MESSAGE.READY.toString() }
