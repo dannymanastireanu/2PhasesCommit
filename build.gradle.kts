@@ -3,8 +3,6 @@ plugins {
 }
 
 group = "two.phases.commit"
-version = "1.0-SNAPSHOT"
-
 repositories {
     mavenCentral()
 }
@@ -19,4 +17,13 @@ tasks.test {
 
 kotlin {
     jvmToolchain(11)
+}
+
+tasks.named<Jar>("jar") {
+    archiveBaseName.set("2pc")
+    manifest {
+        attributes(
+            "Main-Class" to "MainKt"
+        )
+    }
 }
