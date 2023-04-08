@@ -1,3 +1,15 @@
 fun main(args: Array<String>) {
-  println("hello: ${args.toList()}")
+  if(args.size != 1) {
+    throw Error("Should accept just one argument, not ${args.size}.")
+  }
+
+  if(args[0] == "coordinator") {
+    println("Starting coordinator")
+
+  } else if(args[0] == "node") {
+    println("Starting node")
+
+  } else {
+    throw Error("Argument param should be `coordinator` or `node`");
+  }
 }
