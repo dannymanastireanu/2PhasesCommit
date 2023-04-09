@@ -8,7 +8,8 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
-
+import kotlin.random.Random
+import kotlin.random.nextInt
 
 val executorNode: ExecutorService = Executors.newSingleThreadExecutor()
 
@@ -27,24 +28,22 @@ fun nodeMode() {
 
 
 class Client(address: String, port: Int) {
-  private val connection: Socket = Socket(address, port)
-  private var connected: Boolean = true
+  private val coordinator: Socket = Socket(address, port)
 
   init {
     println("Connected to server at $address on port $port")
   }
 
-  private val reader: Scanner = Scanner(connection.getInputStream())
-  private val writer: OutputStream = connection.getOutputStream()
+  private val reader: Scanner = Scanner(coordinator.getInputStream())
+  private val writer: OutputStream = coordinator.getOutputStream()
 
   fun run() {
-    while (connected) {
+    while (true) {
       println("Read message from coordinator...")
       val coordinatorMessage = reader.nextLine()
       println("Received from coordinator: $coordinatorMessage")
 
       if (coordinatorMessage == MESSAGE.ARE_YOU_READY.toString()) {
-        println("[Node]: Type my state: ")
         write(readStateTimeout(::readlnOrNull))
         when (val responseCoordinator = readCommandFromCoordinator(reader::nextLine)) {
           MESSAGE.COMMIT.toString() -> {
@@ -74,11 +73,25 @@ class Client(address: String, port: Int) {
   }
 
   fun readStateTimeout(operation: () -> String?, timeoutSeconds: Long = 10): String {
-    val future = executorNode.submit(Callable(operation))
-    return try {
-      future.get(timeoutSeconds, TimeUnit.SECONDS) ?: MESSAGE.NOT_READY.toString()
-    } catch (ex: TimeoutException) {
-      MESSAGE.NOT_READY.toString()
+    if (READ_FROM_CONSOLE) {
+      println("[Node]: Type my state: ")
+      val future = executorNode.submit(Callable(operation))
+      return try {
+        future.get(timeoutSeconds, TimeUnit.SECONDS) ?: MESSAGE.NOT_READY.toString()
+      } catch (ex: TimeoutException) {
+        MESSAGE.NOT_READY.toString()
+      }
+    } else {
+      Thread.sleep((timeoutSeconds / 3) * 1000)
+      val probability = Random.nextInt(0..100)
+      val probabilityOfFailure = 10
+      if(probability < probabilityOfFailure) {
+        println("[Node]: I am ==== NOT READY ====")
+        return MESSAGE.NOT_READY.toString()
+      } else {
+        println("[Node]: I am ---- READY! ----")
+        return MESSAGE.READY.toString()
+      }
     }
   }
 

@@ -1,3 +1,5 @@
+val READ_FROM_CONSOLE = false
+
 enum class MESSAGE {
   COMMIT,
   ABORT,
