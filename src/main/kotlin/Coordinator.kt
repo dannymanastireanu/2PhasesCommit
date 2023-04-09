@@ -16,9 +16,9 @@ fun coordinatorMode() {
   thread {
     while (true) {
       val client = server.accept()
-      nodes[client.inetAddress.hostAddress] = client
-
-      println("Client connected: ${client.inetAddress.hostAddress}")
+      val clientId = "${client.inetAddress.hostAddress}:${client.port}"
+      nodes[clientId] = client
+      println("Client connected: $clientId . Total Number of nodes: ${nodes.size}")
     }
   }
 
@@ -27,10 +27,11 @@ fun coordinatorMode() {
       println("Read command:")
       val input = readlnOrNull()
       if (input == MESSAGE.ARE_YOU_READY.toString()) {
+        println("Nodes - ${nodes.size}")
         nodes.values.forEach { write(it.getOutputStream(), input) }
         println("Successfully send ${MESSAGE.ARE_YOU_READY} command")
 
-        println("Read messages from ${nodes.size}")
+        println("Read messages from ${nodes.size} nodes")
         val messages = nodes.entries.map { Pair(it.key, readMessageFromNode(it.value)) }
 
         val invalidMessages = messages.filter { it.second != MESSAGE.READY.toString() }
@@ -58,8 +59,7 @@ fun readMessageFromNode(node: Socket, timeoutSeconds: Long = 20): String {
   return try {
     future.get(timeoutSeconds, TimeUnit.SECONDS)
   } catch (ex: TimeoutException) {
-    ex.printStackTrace()
-    println("Fail to receive message from node[${node.inetAddress.hostAddress}]")
+    println("Fail to receive message from node[${node.inetAddress.hostAddress}:${node.port}]")
     ""
   }
 }

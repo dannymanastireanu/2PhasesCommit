@@ -1,14 +1,28 @@
 import java.io.OutputStream
+import java.lang.Exception
 import java.net.Socket
 import java.nio.charset.Charset
 import java.util.Scanner
+import java.util.concurrent.Callable
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
+
+
+val executorNode: ExecutorService = Executors.newSingleThreadExecutor()
 
 fun nodeMode() {
   val address = "localhost"
   val port = 9999
 
-  val client = Client(address, port)
-  client.run()
+  try {
+    val client = Client(address, port)
+    client.run()
+  } catch (e: Exception) {
+    println("FAIL TO CONNECT TO COORDINATOR")
+    e.printStackTrace()
+  }
 }
 
 
@@ -25,21 +39,20 @@ class Client(address: String, port: Int) {
 
   fun run() {
     while (connected) {
-      println("Read message from coordinator")
+      println("Read message from coordinator...")
       val coordinatorMessage = reader.nextLine()
       println("Received from coordinator: $coordinatorMessage")
 
       if (coordinatorMessage == MESSAGE.ARE_YOU_READY.toString()) {
-        println("Type my state: ")
-        val state = readlnOrNull() ?: MESSAGE.NOT_READY.toString()
-        write(state)
+        println("[Node]: Type my state: ")
+        write(readStateTimeout(::readlnOrNull))
         when (val responseCoordinator = reader.nextLine()) {
           MESSAGE.COMMIT.toString() -> {
-            println("Commit the work")
+            println("[Coordinator]: COMMIT the work")
           }
 
           MESSAGE.ABORT.toString() -> {
-            println("ABORT the work")
+            println("[Coordinator]: ABORT the work")
           }
 
           else -> {
@@ -50,12 +63,16 @@ class Client(address: String, port: Int) {
     }
   }
 
-  private fun write(message: String) {
-    writer.write((message + '\n').toByteArray(Charset.defaultCharset()))
+  fun readStateTimeout(operation: () -> String?, timeoutSeconds: Long = 10): String {
+    val future = executorNode.submit(Callable(operation))
+    return try {
+      future.get(timeoutSeconds, TimeUnit.SECONDS) ?: MESSAGE.NOT_READY.toString()
+    } catch (ex: TimeoutException) {
+      MESSAGE.NOT_READY.toString()
+    }
   }
 
-  private fun read() {
-    while (connected)
-      println("Server: ${reader.nextLine()}")
+  private fun write(message: String) {
+    writer.write((message + '\n').toByteArray(Charset.defaultCharset()))
   }
 }
