@@ -3,14 +3,10 @@ import java.net.ServerSocket
 import java.net.Socket
 import java.nio.charset.Charset
 import java.util.Scanner
-import java.util.concurrent.Callable
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
+import java.util.concurrent.*
 import kotlin.concurrent.thread
 
-val executor = Executors.newSingleThreadExecutor()
+val executor: ExecutorService = Executors.newSingleThreadExecutor()
 
 fun coordinatorMode() {
   val nodes = ConcurrentHashMap<String, Socket>()
