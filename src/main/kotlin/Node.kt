@@ -46,7 +46,7 @@ class Client(address: String, port: Int) {
       if (coordinatorMessage == MESSAGE.ARE_YOU_READY.toString()) {
         println("[Node]: Type my state: ")
         write(readStateTimeout(::readlnOrNull))
-        when (val responseCoordinator = reader.nextLine()) {
+        when (val responseCoordinator = readCommandFromCoordinator(reader::nextLine)) {
           MESSAGE.COMMIT.toString() -> {
             println("[Coordinator]: COMMIT the work")
           }
@@ -60,6 +60,16 @@ class Client(address: String, port: Int) {
           }
         }
       }
+    }
+  }
+
+  fun readCommandFromCoordinator(readCmd: () -> String, timeoutSeconds: Long = 10): String {
+    val future = executorNode.submit(Callable(readCmd))
+    return try {
+      future.get(timeoutSeconds, TimeUnit.SECONDS) ?: MESSAGE.NOT_READY.toString()
+    } catch (ex: TimeoutException) {
+      println("No message received from coordinator in ${timeoutSeconds} seconds. Go with ${MESSAGE.ABORT} command")
+      MESSAGE.ABORT.toString()
     }
   }
 

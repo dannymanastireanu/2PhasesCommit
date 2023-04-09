@@ -1,9 +1,13 @@
-import java.io.OutputStream
 import java.net.ServerSocket
 import java.net.Socket
 import java.nio.charset.Charset
 import java.util.Scanner
-import java.util.concurrent.*
+import java.util.concurrent.Callable
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 import kotlin.concurrent.thread
 
 val executor: ExecutorService = Executors.newSingleThreadExecutor()
@@ -27,12 +31,15 @@ fun coordinatorMode() {
       println("Read command:")
       val input = readlnOrNull()
       if (input == MESSAGE.ARE_YOU_READY.toString()) {
-        println("Nodes - ${nodes.size}")
-        nodes.values.forEach { write(it.getOutputStream(), input) }
-        println("Successfully send ${MESSAGE.ARE_YOU_READY} command")
+        broadcast(nodes, MESSAGE.ARE_YOU_READY)
+        println("Successfully send ${MESSAGE.ARE_YOU_READY} command to all ${nodes.size} nodes")
 
         println("Read messages from ${nodes.size} nodes")
-        val messages = nodes.entries.map { Pair(it.key, readMessageFromNode(it.value)) }
+        val messages = try {
+          nodes.entries.map { Pair(it.key, readMessageFromNode(nodes, it.value)) }
+        } catch (e: Exception) {
+          listOf(Pair("", MESSAGE.NOT_READY.toString()))
+        }
 
         val invalidMessages = messages.filter { it.second != MESSAGE.READY.toString() }
         if (invalidMessages.isNotEmpty()) {
@@ -50,20 +57,37 @@ fun coordinatorMode() {
 
 
 fun broadcast(nodes: ConcurrentHashMap<String, Socket>, message: MESSAGE) {
-  println("SEND: $message command")
-  nodes.values.forEach { write(it.getOutputStream(), message.toString()) }
-}
-
-fun readMessageFromNode(node: Socket, timeoutSeconds: Long = 20): String {
-  val future = executor.submit(Callable(Scanner(node.getInputStream())::nextLine))
-  return try {
-    future.get(timeoutSeconds, TimeUnit.SECONDS)
-  } catch (ex: TimeoutException) {
-    println("Fail to receive message from node[${node.inetAddress.hostAddress}:${node.port}]")
-    ""
+  nodes.values.forEach {
+    println("[Coordinator]: Send $message command to ${getId(it)}")
+    write(nodes, it, message.toString())
   }
 }
 
-fun write(writer: OutputStream, message: String) {
-  writer.write((message + '\n').toByteArray(Charset.defaultCharset()))
+fun readMessageFromNode(nodes: ConcurrentHashMap<String, Socket>, node: Socket, timeoutSeconds: Long = 20): String {
+  return try {
+    val future = executor.submit(Callable(Scanner(node.getInputStream())::nextLine))
+    future.get(timeoutSeconds, TimeUnit.SECONDS)
+  } catch (ex: TimeoutException) {
+    println("Fail to receive message from node[${getId(node)}]")
+    MESSAGE.NOT_READY.toString()
+  } catch (e: NoSuchElementException) {
+    println("Node[${getId(node)}] disconnected")
+    nodes.remove(getId(node))
+    MESSAGE.NOT_READY.toString()
+  }
+}
+
+fun getId(node: Socket): String = "${node.inetAddress.hostAddress}:${node.port}"
+
+fun write(nodes: ConcurrentHashMap<String, Socket>, node: Socket, message: String) {
+  try {
+    if (node.isConnected && !node.isClosed) {
+      node.getOutputStream().write((message + '\n').toByteArray(Charset.defaultCharset()))
+    } else {
+      nodes.remove(getId(node))
+    }
+  } catch (e: Exception) {
+    e.printStackTrace()
+    nodes.remove(getId(node))
+  }
 }
