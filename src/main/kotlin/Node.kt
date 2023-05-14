@@ -13,15 +13,28 @@ import kotlin.random.nextInt
 
 val executorNode: ExecutorService = Executors.newSingleThreadExecutor()
 
-fun nodeMode() {
-  val address = "localhost"
-  val port = 9999
+fun retryConnect(address: String = "localhost", port: Int = 9999): Client {
+  val maxRetry = 3
+  for(i in 1..maxRetry) {
+    try {
+      return Client(address, port)
+    } catch (e: Exception) {
+      val sleepTimeMs = 5000L * i
+      Thread.sleep(sleepTimeMs)
+      if (i == maxRetry) {
+        e.printStackTrace()
+      }
+      println("Attempt[$i/$maxRetry] -> FAIL TO CONNECT TO COORDINATOR.. Sleep($sleepTimeMs ms)")
+    }
+  }
+  throw Error("Fail to connect to the server[$address:$port]")
+}
 
+fun nodeMode(address: String = "localhost") {
   try {
-    val client = Client(address, port)
+    val client = retryConnect(address)
     client.run()
   } catch (e: Exception) {
-    println("FAIL TO CONNECT TO COORDINATOR")
     e.printStackTrace()
   }
 }
@@ -85,12 +98,12 @@ class Client(address: String, port: Int) {
       Thread.sleep((timeoutSeconds / 3) * 1000)
       val probability = Random.nextInt(0..100)
       val probabilityOfFailure = 10
-      if(probability < probabilityOfFailure) {
+      return if(probability < probabilityOfFailure) {
         println("[Node]: I am ==== NOT READY ====")
-        return MESSAGE.NOT_READY.toString()
+        MESSAGE.NOT_READY.toString()
       } else {
         println("[Node]: I am ---- READY! ----")
-        return MESSAGE.READY.toString()
+        MESSAGE.READY.toString()
       }
     }
   }

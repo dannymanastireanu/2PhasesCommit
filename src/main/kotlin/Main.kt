@@ -10,6 +10,6 @@ fun main(args: Array<String>) {
     println("Starting node")
     nodeMode()
   } else {
-    throw Error("Argument param should be `coordinator` or `node`. Not ${args[0]}")
+    throw Error("Argument param should be `coordinator` or `node`. Not '${args[0]}'")
   }
 }
