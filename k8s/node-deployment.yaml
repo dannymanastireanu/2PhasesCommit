@@ -17,6 +17,4 @@ spec:
       containers:
         - name: node
           image: acscontainerdny.azurecr.io/node:v1
-          args: ["node"]
-          ports:
-            - containerPort: 9999
+          imagePullPolicy: Always

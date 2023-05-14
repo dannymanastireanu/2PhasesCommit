@@ -1,0 +1,4 @@
+FROM openjdk:17.0.2-jdk-oracle
+WORKDIR /app
+COPY build/libs/2pc-fat.jar ./app/my-java-app.jar
+CMD java -jar ./app/my-java-app.jar "node"

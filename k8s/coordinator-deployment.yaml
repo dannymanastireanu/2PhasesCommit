@@ -18,11 +18,9 @@ spec:
       - name: coordinator
         image: acscontainerdny.azurecr.io/coordinator:v1
         imagePullPolicy: Always
-#        args: ["coordinator"]
-#        ports:
-#        - containerPort: 9999
-#      imagePullSecrets:
-#        - name: k8sdocker4
+
+# Attach ACR to AKS
+# az aks update -n acs-2pc -g danym-acs --attach-acr acscontainerdny
 
 # Logs pods-container
 # kubectl logs $(kubectl get pods -o=jsonpath='{.items[0].metadata.name}') coordinator
