@@ -17,11 +17,12 @@ spec:
       containers:
       - name: coordinator
         image: acscontainerdny.azurecr.io/coordinator:v1
+        imagePullPolicy: Always
 #        args: ["coordinator"]
 #        ports:
 #        - containerPort: 9999
-      imagePullSecrets:
-        - name: k8sdocker4
+#      imagePullSecrets:
+#        - name: k8sdocker4
 
 # Logs pods-container
 # kubectl logs $(kubectl get pods -o=jsonpath='{.items[0].metadata.name}') coordinator
@@ -55,3 +56,9 @@ spec:
 #  --docker-server=acscontainerdny.azurecr.io \
 #  --docker-username=K8sToken4 \
 #  --docker-password="BmwhTpoLX/Ug1l6bkAIV9WocYf0v5Z1bioPRdjitdE+ACRBNN1P9"
+
+# Copy from remote to local
+# scp -J fep -i ~/.ssh/id_openstack -i ~/.ssh/id_openstack student@10.9.4.8:/home/student/work/testdocker/linuxapp.tar.gz ./
+
+# Copy from local to remote
+# scp -v -i ~/.ssh/id_openstack -o ProxyJump=andrei.manastireanu@fep.grid.pub.ro ./dockerstuff.tar.gz student@10.9.4.8:/home/student/work
