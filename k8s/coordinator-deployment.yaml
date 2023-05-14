@@ -17,11 +17,11 @@ spec:
       containers:
       - name: coordinator
         image: acscontainerdny.azurecr.io/coordinator:v1
-        args: ["coordinator"]
-        ports:
-        - containerPort: 9999
+#        args: ["coordinator"]
+#        ports:
+#        - containerPort: 9999
       imagePullSecrets:
-        - name: k8sdocker
+        - name: k8sdocker4
 
 # Logs pods-container
 # kubectl logs $(kubectl get pods -o=jsonpath='{.items[0].metadata.name}') coordinator
@@ -44,14 +44,14 @@ spec:
 # docker push acscontainerdny.azurecr.io/coordinator:v1
 
 # Create token for permissions, useed later in kubectl
-#  az acr token create --name K8sToken --registry acscontainerdny \
+#  az acr token create --name K8sToken4 --registry acscontainerdny \
 #  --repository coordinator \
 #  content/write content/read \
 #  --output json
 
 # Create secret based on previous created token
-#  kubectl create secret docker-registry k8sdocker \
+#  kubectl create secret docker-registry k8sdocker4 \
 #  --namespace default \
 #  --docker-server=acscontainerdny.azurecr.io \
-#  --docker-username=K8sToken \
-#  --docker-password="yr8oPa6ODRc6DG0oxW57Mx4jMefoF/8SWtVAvm/iBy+ACRA0JhfT"
+#  --docker-username=K8sToken4 \
+#  --docker-password="BmwhTpoLX/Ug1l6bkAIV9WocYf0v5Z1bioPRdjitdE+ACRBNN1P9"
