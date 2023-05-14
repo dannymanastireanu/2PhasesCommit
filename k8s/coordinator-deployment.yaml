@@ -23,6 +23,12 @@ spec:
       imagePullSecrets:
         - name: k8sdocker
 
+# Delete all pods/deployments
+# kubectl delete pods --all --force && kubectl delete --all deployment
+
+# Remove all docker images/containers
+# docker stop $(docker ps -a -q) && docker rm $(docker ps -a -q) && docker rmi $(docker images -a -q) --force
+
 # Login to registry
 # az login
 # az acr login --name acscontainerdny
