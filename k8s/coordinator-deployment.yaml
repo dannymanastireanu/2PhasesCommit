@@ -23,8 +23,14 @@ spec:
       imagePullSecrets:
         - name: k8sdocker
 
+# Logs pods-container
+# kubectl logs $(kubectl get pods -o=jsonpath='{.items[0].metadata.name}') coordinator
+
 # Delete all pods/deployments
 # kubectl delete pods --all --force && kubectl delete --all deployment
+
+# Kubectl deployment
+# kubectl apply -f ./k8s/coordinator-deployment.yaml
 
 # Remove all docker images/containers
 # docker stop $(docker ps -a -q) && docker rm $(docker ps -a -q) && docker rmi $(docker images -a -q) --force
@@ -34,8 +40,8 @@ spec:
 # az acr login --name acscontainerdny
 
 # Push image to private registry
-# docker tag  test:latest acscontainerdny.azurecr.io/test:v1
-# docker push acscontainerdny.azurecr.io/test:v1
+# docker tag  coordinator:latest acscontainerdny.azurecr.io/coordinator:v1
+# docker push acscontainerdny.azurecr.io/coordinator:v1
 
 # Create token for permissions, useed later in kubectl
 #  az acr token create --name K8sToken --registry acscontainerdny \
