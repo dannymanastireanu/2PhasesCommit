@@ -20,3 +20,26 @@ spec:
         args: ["coordinator"]
         ports:
         - containerPort: 9999
+      imagePullSecrets:
+        - name: k8sdocker
+
+# Login to registry
+# az login
+# az acr login --name acscontainerdny
+
+# Push image to private registry
+# docker tag  test:latest acscontainerdny.azurecr.io/test:v1
+# docker push acscontainerdny.azurecr.io/test:v1
+
+# Create token for permissions, useed later in kubectl
+#  az acr token create --name K8sToken --registry acscontainerdny \
+#  --repository coordinator \
+#  content/write content/read \
+#  --output json
+
+# Create secret based on previous created token
+#  kubectl create secret docker-registry k8sdocker \
+#  --namespace default \
+#  --docker-server=acscontainerdny.azurecr.io \
+#  --docker-username=K8sToken \
+#  --docker-password="yr8oPa6ODRc6DG0oxW57Mx4jMefoF/8SWtVAvm/iBy+ACRA0JhfT"
